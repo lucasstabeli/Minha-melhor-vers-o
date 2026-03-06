@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quest Diária - Modo Coroa 👑 v9.2 FINAL</title>
+    
+    <!-- ÍCONE E CONFIGURAÇÕES PWA PARA IPHONE -->
+    <link rel="apple-touch-icon" href="https://em-content.zobj.net/source/apple/391/crown_1f451.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Quest Diária">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #FFD700; --primary-dark: #FFA500; --bg-dark: #1a1a2e;
+            --bg-card: #16213e; --bg-light: #0f3460; --text: #eaeaea;
+            --success: #4ecca3; --danger: #e74c3c; --xp: #9b59b6; --warning: #f39c12;
+            --kaffa: #ff006e;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #16213e 100%);
+            color: var(--text); min-height: 100vh; padding-bottom: 80px;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-light) 100%);
+            padding: 20px; border-bottom: 3px solid var(--primary);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .crown-progress { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .crown-icon { font-size: 40px; filter: drop-shadow(0 0 10px var(--primary)); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .progress-bar { flex: 1; height: 20px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; border: 2px solid var(--primary); }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%); transition: width 0.5s ease; box-shadow: 0 0 10px var(--primary); }
+        .level-info { display: flex; justify-content: space-between; font-size: 14px; color: var(--primary); }
+        .quick-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .stat-pill { background: rgba(255,215,0,0.1); border: 1px solid var(--primary); border-radius: 20px; padding: 8px; text-align: center; font-size: 11px; }
+        .stat-pill span { display: block; font-weight: bold; color: var(--primary); font-size: 14px; }
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-card); border-top: 2px solid var(--primary); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 5px 10px; cursor: pointer; transition: all 0.3s; border-radius: 10px; font-size: 10px; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,215,0,0.2); transform: translateY(-5px); }
+        .nav-item span:first-child { font-size: 20px; }
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+        .section { display: none; animation: fadeIn 0.3s; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        h2 { color: var(--primary); margin-bottom: 20px; font-size: 24px; }
+        .card { background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-light) 100%); border-radius: 15px; padding: 20px; margin-bottom: 15px; border: 2px solid transparent; transition: all 0.3s; }
+        .card:hover { border-color: var(--primary); transform: translateX(5px); }
+        .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .card-icon { font-size: 30px; }
+        .card-title { flex: 1; font-size: 18px; font-weight: bold; }
+        .btn { padding: 10px 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s; text-transform: uppercase; font-size: 11px; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #000; }
+        .btn-success { background: var(--success); color: #000; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: #000; }
+        .btn-kaffa { background: linear-gradient(135deg, var(--kaffa) 0%, #ff4d9e); color: white; font-size: 14px; padding: 15px; animation: glow 2s infinite; }
+        @keyframes glow { 0%, 100% { box-shadow: 0 0 5px var(--kaffa); } 50% { box-shadow: 0 0 20px var(--kaffa), 0 0 40px var(--kaffa); } }
+        .btn:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .habit-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; border-left: 4px solid transparent; }
+        .habit-item.completed { border-left-color: var(--success); opacity: 0.7; }
+        .habit-item.failed { border-left-color: var(--danger); background: rgba(231, 76, 60, 0.1); }
+        .habit-item.kaffa-item { background: linear-gradient(135deg, rgba(255,0,110,0.2) 0%, rgba(255,0,110,0.1)); border: 2px solid var(--kaffa); animation: borderGlow 2s infinite; }
+        @keyframes borderGlow { 0%, 100% { border-color: var(--kaffa); box-shadow: 0 0 5px var(--kaffa); } 50% { border-color: #ff4d9e; box-shadow: 0 0 20px var(--kaffa); } }
+        .habit-info { display: flex; align-items: center; gap: 10px; }
+        .habit-icon { font-size: 24px; }
+        .habit-name { font-weight: bold; }
+        .habit-xp { font-size: 12px; color: var(--xp); }
+        .habit-actions { display: flex; gap: 5px; }
+        .water-tracker { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); border-radius: 15px; padding: 20px; margin-bottom: 15px; text-align: center; }
+        .water-cups { display: flex; justify-content: center; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
+        .water-cup { font-size: 35px; cursor: pointer; transition: all 0.3s; opacity: 0.3; }
+        .water-cup.filled { opacity: 1; animation: wave 0.5s ease; filter: drop-shadow(0 0 10px #3498db); }
+        @keyframes wave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .course-card { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; margin-bottom: 10px; border-left: 4px solid var(--success); }
+        .course-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .course-progress { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+        .course-progress-bar { height: 100%; background: var(--success); transition: width 0.3s; }
+        .lessons-list { display: flex; flex-direction: column; gap: 5px; }
+        .lesson-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 5px; font-size: 14px; }
+        .lesson-item.completed { background: rgba(78, 204, 163, 0.2); }
+        .muscle-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+        .muscle-btn { padding: 15px; border: 2px solid var(--bg-light); background: var(--bg-card); color: var(--text); border-radius: 10px; cursor: pointer; transition: all 0.3s; text-align: center; }
+        .muscle-btn:hover { border-color: var(--primary); }
+        .muscle-btn.selected { background: var(--primary); color: #000; border-color: var(--primary); }
+        .workout-calendar { margin-top: 20px; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; background: var(--bg-light); cursor: pointer; transition: all 0.3s; font-size: 11px; position: relative; padding: 2px; }
+        .calendar-day:hover { background: var(--primary); color: #000; }
+        .calendar-day.has-workout { background: var(--success); color: #000; }
+        .calendar-day.today { border: 2px solid var(--primary); box-shadow: 0 0 10px var(--primary); }
+        .muscle-tags { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; font-size: 8px; }
+        .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .shop-item { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px; text-align: center; border: 2px solid transparent; transition: all 0.3s; }
+        .shop-item:hover { border-color: var(--primary); transform: translateY(-5px); }
+        .shop-item.owned { border-color: var(--success); opacity: 0.7; }
+        .shop-icon { font-size: 40px; margin-bottom: 10px; }
+        .shop-name { font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        .shop-price { color: var(--xp); font-size: 14px; margin-bottom: 10px; }
+        .inventory-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .inventory-item { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; text-align: center; border: 2px solid var(--primary); transition: all 0.3s; }
+        .inventory-item:hover { transform: scale(1.05); }
+        .inventory-icon { font-size: 50px; margin-bottom: 10px; }
+        .inventory-name { font-weight: bold; margin-bottom: 10px; font-size: 14px; }
+        .use-btn { width: 100%; margin-top: 10px; }
+        .empty-inventory { grid-column: 1/-1; text-align: center; padding: 40px; opacity: 0.5; }
+        .notification { position: fixed; top: 20px; right: 20px; background: var(--primary); color: #000; padding: 15px 20px; border-radius: 10px; font-weight: bold; z-index: 3000; animation: slideIn 0.3s; max-width: 300px; }
+        @keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
+        .notification.error { background: var(--danger); color: white; }
+        .notification.success { background: var(--success); color: #000; }
+        .level-up { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; font-weight: bold; color: var(--primary); text-shadow: 0 0 30px var(--primary); z-index: 3000; display: none; animation: levelUpAnim 2s; text-align: center; }
+        @keyframes levelUpAnim { 0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.5) rotate(360deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1) rotate(720deg); opacity: 0; } }
+        .kaffa-animation { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4000; display: none; text-align: center; animation: kaffaPop 1s; }
+        @keyframes kaffaPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+        .kaffa-text { font-size: 50px; font-weight: bold; color: var(--kaffa); text-shadow: 0 0 30px var(--kaffa); margin-bottom: 20px; }
+        .kaffa-xp { font-size: 30px; color: var(--primary); }
+        @media (max-width: 480px) { .quick-stats { grid-template-columns: repeat(2, 1fr); } .shop-grid, .inventory-grid { grid-template-columns: 1fr; } .muscle-grid { grid-template-columns: 1fr; } }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="kaffa-animation" id="kaffaAnim">
+        <div class="kaffa-text">🎯 KAFFA FIXADO! 🎯</div>
+        <div class="kaffa-xp">+10.000 XP</div>
+    </div>
+    <div class="header">
+        <div class="crown-progress">
+            <div class="crown-icon">👑</div>
+            <div style="flex: 1;">
+                <div class="progress-bar"><div class="progress-fill" id="crownProgress" style="width: 0%"></div></div>
+                <div class="level-info"><span>Nível <span id="currentLevel">1</span></span><span><span id="currentXP">0</span> / <span id="nextLevelXP">100</span> XP</span></div>
+            </div>
+        </div>
+        <div class="quick-stats">
+            <div class="stat-pill"><span id="dailyStreak">0</span>🔥 Dias</div>
+            <div class="stat-pill"><span id="totalQuests">0</span>⚔️ Feitas</div>
+            <div class="stat-pill"><span id="totalFailed">0</span>❌ Perdidas</div>
+            <div class="stat-pill"><span id="availableXP">0</span>💎 XP</div>
+        </div>
+    </div>
+    <div class="container">
+        <div id="dashboard" class="section active">
+            <h2>⚔️ Missões do Dia</h2>
+
+            <div class="card kaffa-item" style="margin-bottom: 20px;">
+                <div class="card-header">
+                    <span class="card-icon">🎯</span>
+                    <span class="card-title" style="color: var(--kaffa); text-shadow: 0 0 10px var(--kaffa);">MISSÃO ÉPICA: FIXAR NA KAFFA</span>
+                </div>
+                <p style="margin-bottom: 15px; font-size: 14px;">Conseguiu fixar o estágio na Kaffa? Esta é a missão mais valiosa!</p>
+                <div id="kaffaStatus">
+                    <button class="btn btn-kaffa" style="width: 100%;" onclick="completeKaffa()">🎯 FIXEI NA KAFFA! (+10.000 XP)</button>
+                </div>
+            </div>
+
+            <div class="water-tracker">
+                <h3 style="margin-bottom: 10px;">💧 Água (6 copos = 3L)</h3>
+                <div class="water-cups" id="waterCups">
+                    <span class="water-cup" onclick="toggleWater(0)">🥛</span>
+                    <span class="water-cup" onclick="toggleWater(1)">🥛</span>
+                    <span class="water-cup" onclick="toggleWater(2)">🥛</span>
+                    <span class="water-cup" onclick="toggleWater(3)">🥛</span>
+                    <span class="water-cup" onclick="toggleWater(4)">🥛</span>
+                    <span class="water-cup" onclick="toggleWater(5)">🥛</span>
+                </div>
+                <div style="font-weight: bold;"><span id="waterCount">0</span>/6 copos (500ml cada)</div>
+                <small style="opacity: 0.8;">Reseta a cada 10 horas</small>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="card-icon">⭐</span><span class="card-title">Missões Diárias (Resetam amanhã automaticamente)</span></div>
+                <div id="mainQuestsList"></div>
+            </div>
+        </div>
+
+        <div id="courses" class="section"><h2>📚 Meus Cursos</h2><div id="coursesList"></div></div>
+
+        <div id="workout" class="section">
+            <h2>💪 Treino</h2>
+            <div class="card">
+                <div class="card-header"><span class="card-icon">🏋️</span><span class="card-title">Grupos Musculares</span></div>
+                <p style="margin-bottom: 15px; opacity: 0.8;">Selecione os músculos treinados:</p>
+                <div class="muscle-grid" id="muscleGrid">
+                    <button class="muscle-btn" data-muscle="peito" onclick="toggleMuscle('peito')">Peito</button>
+                    <button class="muscle-btn" data-muscle="costas" onclick="toggleMuscle('costas')">Costas</button>
+                    <button class="muscle-btn" data-muscle="pernas" onclick="toggleMuscle('pernas')">Pernas</button>
+                    <button class="muscle-btn" data-muscle="ombros" onclick="toggleMuscle('ombros')">Ombros</button>
+                    <button class="muscle-btn" data-muscle="biceps" onclick="toggleMuscle('biceps')">Bíceps</button>
+                    <button class="muscle-btn" data-muscle="triceps" onclick="toggleMuscle('triceps')">Tríceps</button>
+                    <button class="muscle-btn" data-muscle="abdomen" onclick="toggleMuscle('abdomen')">Abdômen</button>
+                    <button class="muscle-btn" data-muscle="cardio" onclick="toggleMuscle('cardio')">Cardio</button>
+                </div>
+                <button class="btn btn-success" style="width: 100%;" onclick="confirmWorkout()">✅ Confirmar Treino</button>
+                <p style="margin-top: 10px; font-size: 12px; color: var(--danger);">⚠️ Se não treinar: -50 XP (amanhã)</p>
+            </div>
+            <div class="card workout-calendar">
+                <div class="card-header"><span class="card-icon">📅</span><span class="card-title">Histórico</span></div>
+                <div class="calendar-header"><button class="btn" onclick="changeMonth(-1)">◀</button><span id="currentMonth">Mês</span><button class="btn" onclick="changeMonth(1)">▶</button></div>
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 5px; text-align: center; font-size: 12px; color: var(--primary);"><div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div></div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+        </div>
+
+        <div id="shop" class="section">
+            <h2>🛒 Loja de Recompensas</h2>
+            <p style="margin-bottom: 20px;">XP Disponível: <strong id="shopXP" style="color: var(--primary); font-size: 24px;">0</strong> 💎</p>
+            <div class="shop-grid" id="shopGrid"></div>
+        </div>
+
+        <div id="inventory" class="section">
+            <h2>🎒 Inventário</h2>
+            <p style="margin-bottom: 20px; opacity: 0.8;">Clique em "USAR" para resgatar sua recompensa (o item some após usar)</p>
+            <div class="inventory-grid" id="inventoryGrid"></div>
+        </div>
+
+        <div id="stats" class="section">
+            <h2>📊 Estatísticas</h2>
+            <div id="statsContent"></div>
+        </div>
+    </div>
+    <nav class="nav-bottom">
+        <div class="nav-item active" onclick="showSection('dashboard')"><span>⚔️</span><span>Missões</span></div>
+        <div class="nav-item" onclick="showSection('courses')"><span>📚</span><span>Cursos</span></div>
+        <div class="nav-item" onclick="showSection('workout')"><span>💪</span><span>Treino</span></div>
+        <div class="nav-item" onclick="showSection('shop')"><span>🛒</span><span>Loja</span></div>
+        <div class="nav-item" onclick="showSection('inventory')"><span>🎒</span><span>Baú</span></div>
+        <div class="nav-item" onclick="showSection('stats')"><span>📊</span><span>Stats</span></div>
+    </nav>
+    <div class="level-up" id="levelUp"><div>LEVEL UP!</div><div style="font-size: 30px;">👑</div></div>
+
+    <script>
+        // RESETAR TUDO (para começar do zero)
+        localStorage.removeItem('questDiariaV9');
+
+        let gameData = {
+            level: 1,
+            xp: 0,
+            availableXP: 0,
+            streak: 0,
+            totalCompleted: 0,
+            totalFailed: 0,
+            lastLogin: new Date().toDateString(),
+            lastWaterReset: Date.now(),
+            kaffaFixed: false,
+            waterCups: [false, false, false, false, false, false],
+
+            mainQuests: {
+                acordar: { name: "Acordar Cedo", icon: "🌅", completed: false, failed: false, xp: 30, penalty: 200 },
+                agua: { name: "Meta de Água", icon: "💧", completed: false, failed: false, xp: 25, penalty: 0 },
+                aulas: { name: "Aulas da Faculdade", icon: "🎓", completed: false, failed: false, xp: 30, penalty: 100 },
+                trabalhos: { name: "Trabalhos/Projetos", icon: "📋", completed: false, failed: false, xp: 35, penalty: 50 },
+                ingles: { name: "Inglês", icon: "🇺🇸", completed: false, failed: false, xp: 25, penalty: 20 },
+                curso: { name: "Aula de Curso", icon: "💻", completed: false, failed: false, xp: 20, penalty: 20 }
+            },
+
+            courses: [
+                { id: 1, name: "SQL", icon: "🗄️", totalLessons: 313, completedLessons: 0, currentLesson: 1, bonusXP: 2504 },
+                { id: 2, name: "Python", icon: "🐍", totalLessons: 751, completedLessons: 0, currentLesson: 1, bonusXP: 6000 },
+                { id: 3, name: "C#", icon: "💻", totalLessons: 278, completedLessons: 0, currentLesson: 1, bonusXP: 2224 },
+                { id: 4, name: "GitHub", icon: "🐙", totalLessons: 120, completedLessons: 0, currentLesson: 1, bonusXP: 960 },
+                { id: 5, name: "HTML", icon: "🌐", totalLessons: 778, completedLessons: 0, currentLesson: 1, bonusXP: 6224 }
+            ],
+
+            workouts: {},
+            todayMuscles: [],
+            workoutDone: false,
+
+            shopItems: [
+                { id: 1, name: "Jogar Basquete", icon: "🏀", price: 500 },
+                { id: 2, name: "Sair com Namorada", icon: "❤️", price: 500 },
+                { id: 3, name: "Comprar Algo Pra Mim", icon: "🎁", price: 1000 },
+                { id: 4, name: "Jogar Video Game", icon: "🎮", price: 500 },
+                { id: 5, name: "Andar de Skate", icon: "🛹", price: 500 },
+                { id: 6, name: "Sair com Amigos", icon: "🍻", price: 500 }
+            ],
+
+            inventory: []
+        };
+
+        document.addEventListener('DOMContentLoaded', () => { 
+            loadData(); 
+            checkNewDay(); 
+            checkWaterReset(); 
+            renderAll(); 
+        });
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function addXP(amount, source = '') {
+            gameData.xp += amount;
+            gameData.availableXP += amount;
+            gameData.totalCompleted++;
+
+            if (gameData.xp >= gameData.level * 100) {
+                gameData.level++;
+                document.getElementById('levelUp').style.display = 'block';
+                setTimeout(() => document.getElementById('levelUp').style.display = 'none', 2000);
+                showNotification(`🎉 LEVEL UP! Nível ${gameData.level}!`, 'success');
+            }
+
+            saveData();
+            updateUI();
+            renderShop();
+
+            if (source) showNotification(`+${amount} XP - ${source}`, 'success');
+        }
+
+        function removeXP(amount, reason = '') {
+            gameData.xp = Math.max(0, gameData.xp - amount);
+            gameData.availableXP = Math.max(0, gameData.availableXP - amount);
+            gameData.totalFailed++;
+            saveData();
+            updateUI();
+            renderShop();
+            if (reason) showNotification(`-${amount} XP - ${reason}`, 'error');
+        }
+
+        // KAFFA
+        function completeKaffa() {
+            if (!gameData.kaffaFixed) {
+                gameData.kaffaFixed = true;
+                addXP(10000, 'FIXOU NA KAFFA! 🎯');
+
+                const anim = document.getElementById('kaffaAnim');
+                anim.style.display = 'block';
+                setTimeout(() => anim.style.display = 'none', 3000);
+
+                document.getElementById('kaffaStatus').innerHTML = '<button class="btn" style="width: 100%; background: var(--success);" disabled>✅ KAFFA FIXADO! PARABÉNS! 🎉</button>';
+                saveData();
+            }
+        }
+
+        // ÁGUA
+        function toggleWater(index) {
+            gameData.waterCups[index] = !gameData.waterCups[index];
+            updateWaterUI();
+
+            const filled = gameData.waterCups.filter(c => c).length;
+            if (filled === 6 && !gameData.mainQuests.agua.completed) {
+                gameData.mainQuests.agua.completed = true;
+                addXP(25, 'Meta de água atingida!');
+                renderMainQuests();
+            }
+            saveData();
+        }
+
+        function updateWaterUI() {
+            const cups = document.querySelectorAll('.water-cup');
+            gameData.waterCups.forEach((filled, index) => {
+                cups[index].classList.toggle('filled', filled);
+            });
+            document.getElementById('waterCount').textContent = gameData.waterCups.filter(c => c).length;
+        }
+
+        function checkWaterReset() {
+            const now = Date.now();
+            const tenHours = 10 * 60 * 60 * 1000;
+            if (now - gameData.lastWaterReset > tenHours) {
+                gameData.waterCups = [false, false, false, false, false, false];
+                gameData.lastWaterReset = now;
+                saveData();
+                updateWaterUI();
+            }
+        }
+
+        // NOVO DIA AUTOMÁTICO
+        function checkNewDay() {
+            const today = new Date().toDateString();
+            if (gameData.lastLogin !== today) {
+                checkFailedTasks();
+
+                gameData.lastLogin = today;
+                gameData.todayMuscles = [];
+                gameData.workoutDone = false;
+
+                Object.keys(gameData.mainQuests).forEach(key => {
+                    gameData.mainQuests[key].completed = false;
+                    gameData.mainQuests[key].failed = false;
+                });
+
+                gameData.waterCups = [false, false, false, false, false, false];
+
+                saveData();
+                renderAll();
+                showNotification('🌅 Novo dia! Todas as missões foram resetadas automaticamente.');
+            }
+        }
+
+        function checkFailedTasks() {
+            if (!gameData.workoutDone) {
+                removeXP(50, 'Não foi à academia ontem');
+            }
+
+            Object.entries(gameData.mainQuests).forEach(([key, quest]) => {
+                if (!quest.completed && !quest.failed && quest.penalty > 0) {
+                    quest.failed = true;
+                    removeXP(quest.penalty, `${quest.name} não realizado ontem`);
+                }
+            });
+        }
+
+        // RENDERIZAR
+        function renderAll() {
+            updateWaterUI();
+            renderMainQuests();
+            renderKaffa();
+            renderCourses();
+            renderMuscles();
+            renderCalendar();
+            renderShop();
+            renderInventory();
+            updateUI();
+        }
+
+        function renderKaffa() {
+            if (gameData.kaffaFixed) {
+                document.getElementById('kaffaStatus').innerHTML = '<button class="btn" style="width: 100%; background: var(--success);" disabled>✅ KAFFA FIXADO! PARABÉNS! 🎉</button>';
+            }
+        }
+
+        function renderMainQuests() {
+            const container = document.getElementById('mainQuestsList');
+            container.innerHTML = Object.entries(gameData.mainQuests).map(([key, quest]) => `
+                <div class="habit-item ${quest.completed ? 'completed' : ''} ${quest.failed ? 'failed' : ''}">
+                    <div class="habit-info">
+                        <span class="habit-icon">${quest.icon}</span>
+                        <div>
+                            <div class="habit-name">${quest.name}</div>
+                            <div class="habit-xp">+${quest.xp} XP | Falha: -${quest.penalty} XP</div>
+                        </div>
+                    </div>
+                    <div class="habit-actions">
+                        ${!quest.completed && !quest.failed ? `
+                            <button class="btn btn-success" onclick="completeMainQuest('${key}')">✓</button>
+                            <button class="btn btn-danger" onclick="failMainQuest('${key}')">✗</button>
+                        ` : `
+                            <button class="btn" disabled>${quest.completed ? '✓ Feito' : '✗ Falhou'}</button>
+                        `}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function completeMainQuest(key) {
+            const quest = gameData.mainQuests[key];
+            quest.completed = true;
+            addXP(quest.xp, quest.name);
+            renderMainQuests();
+            saveData();
+        }
+
+        function failMainQuest(key) {
+            const quest = gameData.mainQuests[key];
+            quest.failed = true;
+            removeXP(quest.penalty, `${quest.name} não feito`);
+            renderMainQuests();
+            saveData();
+        }
+
+        // CURSOS - CORRIGIDO: Mostra próximas 5 aulas sempre
+        function renderCourses() {
+            const container = document.getElementById('coursesList');
+            container.innerHTML = gameData.courses.map(course => {
+                const progress = (course.completedLessons / course.totalLessons) * 100;
+                const remaining = course.totalLessons - course.completedLessons;
+
+                // Mostra as próximas 5 aulas a partir da currentLesson
+                let nextLessons = [];
+                for (let i = 0; i < 5; i++) {
+                    const lessonNum = course.currentLesson + i;
+                    if (lessonNum <= course.totalLessons) {
+                        nextLessons.push({
+                            num: lessonNum,
+                            completed: lessonNum <= course.completedLessons
+                        });
+                    }
+                }
+
+                return `
+                    <div class="course-card">
+                        <div class="course-header">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 30px;">${course.icon}</span>
+                                <div>
+                                    <div style="font-weight: bold;">${course.name}</div>
+                                    <small>${course.completedLessons}/${course.totalLessons} aulas | Bônus: ${course.bonusXP} XP</small>
+                                </div>
+                            </div>
+                            <span style="color: var(--success);">${Math.round(progress)}%</span>
+                        </div>
+                        <div class="course-progress">
+                            <div class="course-progress-bar" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="lessons-list">
+                            ${remaining > 0 ? nextLessons.map(lesson => `
+                                <div class="lesson-item ${lesson.completed ? 'completed' : ''}">
+                                    <span>Aula ${lesson.num} ${lesson.completed ? '✓' : ''}</span>
+                                    ${!lesson.completed ? `
+                                        <button class="btn btn-success" style="padding: 5px 10px; font-size: 10px;" 
+                                            onclick="completeLesson(${course.id}, ${lesson.num})">
+                                            Completar (+20 XP)
+                                        </button>
+                                    ` : '<span style="color: var(--success);">Concluída</span>'}
+                                </div>
+                            `).join('') : '<div style="color: var(--success); text-align: center; padding: 10px; font-weight: bold;">🎉 Curso 100% Completado!</div>'}
+                        </div>
+                        ${remaining > 0 ? `<small style="opacity: 0.7; margin-top: 10px; display: block;">Faltam ${remaining} aulas para completar</small>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function completeLesson(courseId, lessonNum) {
+            const course = gameData.courses.find(c => c.id === courseId);
+
+            if (lessonNum === course.currentLesson && course.completedLessons < course.totalLessons) {
+                course.completedLessons++;
+                course.currentLesson++;
+                addXP(20, `Aula ${lessonNum} de ${course.name}`);
+
+                if (course.completedLessons === course.totalLessons) {
+                    addXP(course.bonusXP, `🎉 Curso ${course.name} completado!`);
+                }
+
+                renderCourses();
+                saveData();
+            }
+        }
+
+        // TREINO
+        function toggleMuscle(muscle) {
+            if (gameData.workoutDone) {
+                showNotification('Treino de hoje já registrado!', 'error');
+                return;
+            }
+            const index = gameData.todayMuscles.indexOf(muscle);
+            const btn = document.querySelector(`[data-muscle="${muscle}"]`);
+
+            if (index > -1) {
+                gameData.todayMuscles.splice(index, 1);
+                btn.classList.remove('selected');
+            } else {
+                gameData.todayMuscles.push(muscle);
+                btn.classList.add('selected');
+            }
+        }
+
+        function renderMuscles() {
+            document.querySelectorAll('.muscle-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                const muscle = btn.getAttribute('data-muscle');
+                if (gameData.todayMuscles.includes(muscle)) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+
+        function confirmWorkout() {
+            if (gameData.workoutDone) {
+                showNotification('Treino de hoje já registrado!', 'error');
+                return;
+            }
+
+            if (gameData.todayMuscles.length === 0) {
+                showNotification('Selecione pelo menos um músculo!', 'error');
+                return;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            const totalXP = (gameData.todayMuscles.length * 15) + 20;
+
+            gameData.workouts[today] = { muscles: [...gameData.todayMuscles], xp: totalXP };
+            gameData.workoutDone = true;
+
+            addXP(totalXP, `Treino: ${gameData.todayMuscles.join(', ')}`);
+            renderCalendar();
+            saveData();
+            showNotification(`💪 Treino salvo! +${totalXP} XP`, 'success');
+        }
+
+        // CALENDÁRIO
+        let currentDate = new Date();
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear(), month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            document.getElementById('currentMonth').textContent = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < firstDay; i++) grid.innerHTML += '<div></div>';
+
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+                const workout = gameData.workouts[dateKey];
+
+                const dayEl = document.createElement('div');
+                dayEl.className = `calendar-day ${isToday ? 'today' : ''} ${workout ? 'has-workout' : ''}`;
+                dayEl.innerHTML = `<div>${day}</div>${workout ? `<div class="muscle-tags">${workout.muscles.slice(0, 2).join(',')}${workout.muscles.length > 2 ? '+' : ''}</div>` : ''}`;
+                grid.appendChild(dayEl);
+            }
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        // LOJA
+        function renderShop() {
+            document.getElementById('shopXP').textContent = gameData.availableXP;
+            document.getElementById('shopGrid').innerHTML = gameData.shopItems.map(item => `
+                <div class="shop-item">
+                    <div class="shop-icon">${item.icon}</div>
+                    <div class="shop-name">${item.name}</div>
+                    <div class="shop-price">${item.price} XP</div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" 
+                        ${gameData.availableXP < item.price ? 'disabled' : ''}
+                        onclick="buyItem(${item.id})">
+                        ${gameData.availableXP < item.price ? '💎 XP Insuficiente' : '🛒 Comprar'}
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function buyItem(itemId) {
+            const item = gameData.shopItems.find(i => i.id === itemId);
+            if (item && gameData.availableXP >= item.price) {
+                gameData.availableXP -= item.price;
+
+                gameData.inventory.push({
+                    id: Date.now(),
+                    itemId: item.id,
+                    name: item.name,
+                    icon: item.icon,
+                    date: new Date().toLocaleDateString()
+                });
+
+                showNotification(`🎉 ${item.name} comprado! Vá ao Baú usar.`, 'success');
+                renderShop();
+                renderInventory();
+                updateUI();
+                saveData();
+            }
+        }
+
+        // INVENTÁRIO
+        function renderInventory() {
+            const container = document.getElementById('inventoryGrid');
+            if (gameData.inventory.length === 0) {
+                container.innerHTML = '<div class="empty-inventory">🎒 Inventário vazio.<br>Compre recompensas na loja!</div>';
+                return;
+            }
+
+            container.innerHTML = gameData.inventory.map((item, index) => `
+                <div class="inventory-item">
+                    <div class="inventory-icon">${item.icon}</div>
+                    <div class="inventory-name">${item.name}</div>
+                    <small style="opacity: 0.7; margin-bottom: 10px;">Comprado: ${item.date}</small>
+                    <button class="btn btn-success use-btn" onclick="useItem(${index})">✅ USAR</button>
+                </div>
+            `).join('');
+        }
+
+        function useItem(index) {
+            const item = gameData.inventory[index];
+            if (item) {
+                gameData.inventory.splice(index, 1);
+                showNotification(`🎉 Você usou: ${item.name}! Aproveite!`, 'success');
+                renderInventory();
+                saveData();
+            }
+        }
+
+        // UTILS
+        function updateUI() {
+            document.getElementById('currentLevel').textContent = gameData.level;
+            document.getElementById('currentXP').textContent = gameData.xp;
+            document.getElementById('nextLevelXP').textContent = gameData.level * 100;
+            document.getElementById('crownProgress').style.width = ((gameData.xp % 100) / 100 * 100) + '%';
+            document.getElementById('dailyStreak').textContent = gameData.streak;
+            document.getElementById('totalQuests').textContent = gameData.totalCompleted;
+            document.getElementById('totalFailed').textContent = gameData.totalFailed;
+            document.getElementById('availableXP').textContent = gameData.availableXP;
+        }
+
+        function showNotification(message, type = '') {
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        function saveData() {
+            localStorage.setItem('questDiariaV9', JSON.stringify(gameData));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('questDiariaV9');
+            if (saved) {
+                gameData = JSON.parse(saved);
+            }
+        }
+
+        setInterval(() => { checkNewDay(); checkWaterReset(); }, 60000);
+    </script>
+</body>
+</html>

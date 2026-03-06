@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quest Diária - Modo Coroa 👑 v9.2 FINAL</title>
     
     <!-- ÍCONE E CONFIGURAÇÕES PWA PARA IPHONE -->
@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="Quest Diária">
     
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root {
             --primary: #FFD700; --primary-dark: #FFA500; --bg-dark: #1a1a2e;
             --bg-card: #16213e; --bg-light: #0f3460; --text: #eaeaea;
@@ -23,6 +23,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--bg-dark) 0%, #16213e 100%);
             color: var(--text); min-height: 100vh; padding-bottom: 80px;
+            touch-action: manipulation;
         }
         .header {
             background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-light) 100%);
@@ -39,9 +40,10 @@
         .stat-pill { background: rgba(255,215,0,0.1); border: 1px solid var(--primary); border-radius: 20px; padding: 8px; text-align: center; font-size: 11px; }
         .stat-pill span { display: block; font-weight: bold; color: var(--primary); font-size: 14px; }
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-card); border-top: 2px solid var(--primary); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 5px 10px; cursor: pointer; transition: all 0.3s; border-radius: 10px; font-size: 10px; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 5px 10px; cursor: pointer; transition: all 0.3s; border-radius: 10px; font-size: 10px; user-select: none; -webkit-user-select: none; }
         .nav-item:hover, .nav-item.active { background: rgba(255,215,0,0.2); transform: translateY(-5px); }
-        .nav-item span:first-child { font-size: 20px; }
+        .nav-item span:first-child { font-size: 20px; pointer-events: none; }
+        .nav-item span:last-child { pointer-events: none; }
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         .section { display: none; animation: fadeIn 0.3s; }
         .section.active { display: block; }
@@ -52,7 +54,7 @@
         .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
         .card-icon { font-size: 30px; }
         .card-title { flex: 1; font-size: 18px; font-weight: bold; }
-        .btn { padding: 10px 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s; text-transform: uppercase; font-size: 11px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s; text-transform: uppercase; font-size: 11px; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
         .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #000; }
         .btn-success { background: var(--success); color: #000; }
         .btn-danger { background: var(--danger); color: white; }
@@ -61,19 +63,19 @@
         @keyframes glow { 0%, 100% { box-shadow: 0 0 5px var(--kaffa); } 50% { box-shadow: 0 0 20px var(--kaffa), 0 0 40px var(--kaffa); } }
         .btn:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .habit-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; border-left: 4px solid transparent; }
+        .habit-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; border-left: 4px solid transparent; user-select: none; -webkit-user-select: none; }
         .habit-item.completed { border-left-color: var(--success); opacity: 0.7; }
         .habit-item.failed { border-left-color: var(--danger); background: rgba(231, 76, 60, 0.1); }
         .habit-item.kaffa-item { background: linear-gradient(135deg, rgba(255,0,110,0.2) 0%, rgba(255,0,110,0.1)); border: 2px solid var(--kaffa); animation: borderGlow 2s infinite; }
         @keyframes borderGlow { 0%, 100% { border-color: var(--kaffa); box-shadow: 0 0 5px var(--kaffa); } 50% { border-color: #ff4d9e; box-shadow: 0 0 20px var(--kaffa); } }
-        .habit-info { display: flex; align-items: center; gap: 10px; }
+        .habit-info { display: flex; align-items: center; gap: 10px; pointer-events: none; }
         .habit-icon { font-size: 24px; }
         .habit-name { font-weight: bold; }
         .habit-xp { font-size: 12px; color: var(--xp); }
         .habit-actions { display: flex; gap: 5px; }
         .water-tracker { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); border-radius: 15px; padding: 20px; margin-bottom: 15px; text-align: center; }
         .water-cups { display: flex; justify-content: center; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
-        .water-cup { font-size: 35px; cursor: pointer; transition: all 0.3s; opacity: 0.3; }
+        .water-cup { font-size: 35px; cursor: pointer; transition: all 0.3s; opacity: 0.3; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
         .water-cup.filled { opacity: 1; animation: wave 0.5s ease; filter: drop-shadow(0 0 10px #3498db); }
         @keyframes wave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .course-card { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; margin-bottom: 10px; border-left: 4px solid var(--success); }
@@ -81,41 +83,41 @@
         .course-progress { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
         .course-progress-bar { height: 100%; background: var(--success); transition: width 0.3s; }
         .lessons-list { display: flex; flex-direction: column; gap: 5px; }
-        .lesson-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 5px; font-size: 14px; }
+        .lesson-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 5px; font-size: 14px; user-select: none; -webkit-user-select: none; }
         .lesson-item.completed { background: rgba(78, 204, 163, 0.2); }
         .muscle-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
-        .muscle-btn { padding: 15px; border: 2px solid var(--bg-light); background: var(--bg-card); color: var(--text); border-radius: 10px; cursor: pointer; transition: all 0.3s; text-align: center; }
+        .muscle-btn { padding: 15px; border: 2px solid var(--bg-light); background: var(--bg-card); color: var(--text); border-radius: 10px; cursor: pointer; transition: all 0.3s; text-align: center; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
         .muscle-btn:hover { border-color: var(--primary); }
         .muscle-btn.selected { background: var(--primary); color: #000; border-color: var(--primary); }
         .workout-calendar { margin-top: 20px; }
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; background: var(--bg-light); cursor: pointer; transition: all 0.3s; font-size: 11px; position: relative; padding: 2px; }
+        .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; background: var(--bg-light); cursor: pointer; transition: all 0.3s; font-size: 11px; position: relative; padding: 2px; user-select: none; -webkit-user-select: none; }
         .calendar-day:hover { background: var(--primary); color: #000; }
         .calendar-day.has-workout { background: var(--success); color: #000; }
         .calendar-day.today { border: 2px solid var(--primary); box-shadow: 0 0 10px var(--primary); }
-        .muscle-tags { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; font-size: 8px; }
+        .muscle-tags { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; font-size: 8px; pointer-events: none; }
         .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .shop-item { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px; text-align: center; border: 2px solid transparent; transition: all 0.3s; }
+        .shop-item { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px; text-align: center; border: 2px solid transparent; transition: all 0.3s; user-select: none; -webkit-user-select: none; }
         .shop-item:hover { border-color: var(--primary); transform: translateY(-5px); }
         .shop-item.owned { border-color: var(--success); opacity: 0.7; }
-        .shop-icon { font-size: 40px; margin-bottom: 10px; }
+        .shop-icon { font-size: 40px; margin-bottom: 10px; pointer-events: none; }
         .shop-name { font-weight: bold; margin-bottom: 5px; font-size: 14px; }
         .shop-price { color: var(--xp); font-size: 14px; margin-bottom: 10px; }
         .inventory-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .inventory-item { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; text-align: center; border: 2px solid var(--primary); transition: all 0.3s; }
+        .inventory-item { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; text-align: center; border: 2px solid var(--primary); transition: all 0.3s; user-select: none; -webkit-user-select: none; }
         .inventory-item:hover { transform: scale(1.05); }
-        .inventory-icon { font-size: 50px; margin-bottom: 10px; }
+        .inventory-icon { font-size: 50px; margin-bottom: 10px; pointer-events: none; }
         .inventory-name { font-weight: bold; margin-bottom: 10px; font-size: 14px; }
         .use-btn { width: 100%; margin-top: 10px; }
         .empty-inventory { grid-column: 1/-1; text-align: center; padding: 40px; opacity: 0.5; }
-        .notification { position: fixed; top: 20px; right: 20px; background: var(--primary); color: #000; padding: 15px 20px; border-radius: 10px; font-weight: bold; z-index: 3000; animation: slideIn 0.3s; max-width: 300px; }
+        .notification { position: fixed; top: 20px; right: 20px; background: var(--primary); color: #000; padding: 15px 20px; border-radius: 10px; font-weight: bold; z-index: 3000; animation: slideIn 0.3s; max-width: 300px; user-select: none; -webkit-user-select: none; }
         @keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
         .notification.error { background: var(--danger); color: white; }
         .notification.success { background: var(--success); color: #000; }
-        .level-up { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; font-weight: bold; color: var(--primary); text-shadow: 0 0 30px var(--primary); z-index: 3000; display: none; animation: levelUpAnim 2s; text-align: center; }
+        .level-up { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; font-weight: bold; color: var(--primary); text-shadow: 0 0 30px var(--primary); z-index: 3000; display: none; animation: levelUpAnim 2s; text-align: center; user-select: none; -webkit-user-select: none; pointer-events: none; }
         @keyframes levelUpAnim { 0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.5) rotate(360deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1) rotate(720deg); opacity: 0; } }
-        .kaffa-animation { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4000; display: none; text-align: center; animation: kaffaPop 1s; }
+        .kaffa-animation { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4000; display: none; text-align: center; animation: kaffaPop 1s; user-select: none; -webkit-user-select: none; pointer-events: none; }
         @keyframes kaffaPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
         .kaffa-text { font-size: 50px; font-weight: bold; color: var(--kaffa); text-shadow: 0 0 30px var(--kaffa); margin-bottom: 20px; }
         .kaffa-xp { font-size: 30px; color: var(--primary); }
@@ -234,8 +236,8 @@
     <div class="level-up" id="levelUp"><div>LEVEL UP!</div><div style="font-size: 30px;">👑</div></div>
 
     <script>
-        // RESETAR TUDO (para começar do zero)
-        localStorage.removeItem('questDiariaV9');
+        // REMOVIDO: localStorage.removeItem('questDiariaV9');
+        // Agora os dados são mantidos entre as sessões!
 
         let gameData = {
             level: 1,
